@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stronghold layer</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand"><b>Stronghold layer</b><span id="whoami">connecting…</span></div>
+    <div class="nav" role="tablist">
+      <button role="tab" data-screen="canvasPanel" aria-selected="true">Canvas</button>
+      <button role="tab" data-screen="runsPanel" aria-selected="false">Runs</button>
+      <button role="tab" data-screen="setupPanel" aria-selected="false">Setup</button>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn small" id="btnLogout">Sign out</button>
+  </header>
+
+  <section id="canvasPanel" class="panel show" role="tabpanel">
+    <div class="toolbar">
+      <select id="wfSelect" aria-label="Choose workflow"></select>
+      <div class="modeseg" id="modeSeg" title="Watch = log only. Live = acts on monday. Off = ignores events."><button data-mode="watch" aria-pressed="true">Watch</button><button data-mode="live" class="live">Live</button><button data-mode="off" class="off">Off</button></div>
+      <button class="btn small" id="btnTidy">Tidy up</button>
+      <span class="spacer"></span>
+      <span id="saved" aria-live="polite"></span>
+      <button class="btn" id="btnDetails">Details</button>
+      <button class="btn primary" id="btnRun">Run test</button>
+    </div>
+    <main class="cv">
+      <nav id="palette" aria-label="Steps you can add">
+        <h2>Add a step</h2>
+        <div id="palItems"></div>
+        <div class="legend">
+          <p><b>Watch mode</b> logs what a workflow would do; nothing is written to monday.</p>
+          <p><b>Run test</b> walks a real item from your board through this workflow without changing anything.</p>
+          <p><span class="dot yes"></span> Yes &nbsp; <span class="dot no"></span> No &nbsp; dashed = loops back</p>
+        </div>
+      </nav>
+      <section id="canvas" aria-label="Workflow canvas">
+        <div id="viewport">
+          <div id="world">
+            <svg id="edges" aria-hidden="true">
+              <defs>
+                <marker id="mk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9 z" fill="var(--edge)"/></marker>
+                <marker id="mk-yes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9 z" fill="var(--yes)"/></marker>
+                <marker id="mk-no" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9 z" fill="var(--no)"/></marker>
+                <marker id="mk-sel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9 z" fill="var(--focus)"/></marker>
+              </defs>
+              <g id="edgeLayer"></g>
+              <path id="tempEdge" class="temp" d="" style="display:none"/>
+            </svg>
+            <div id="nodes"></div>
+          </div>
+        </div>
+        <div id="empty"><div><b>This workflow is empty.</b><br>Add a trigger from the list to start.</div></div>
+        <div id="zoom">
+          <button class="btn small" id="zOut" aria-label="Zoom out">−</button>
+          <button class="btn small" id="zFit">Fit</button>
+          <button class="btn small" id="zIn" aria-label="Zoom in">+</button>
+        </div>
+        <div id="log" role="region" aria-label="Test run log">
+          <div class="lh"><b>Test run</b><span id="logSub" style="font-size:12px;color:var(--muted)"></span><span class="spacer"></span><button class="btn small" id="logClose">Close</button></div>
+          <ol id="logList"></ol>
+        </div>
+      </section>
+      <aside id="inspector" aria-label="Details">
+        <button class="btn small" id="closeInsp">Close</button>
+        <div id="inspBody"></div>
+      </aside>
+    </main>
+  </section>
+
+  <section id="runsPanel" class="panel page" role="tabpanel"><div id="runsBody"></div></section>
+  <section id="setupPanel" class="panel page" role="tabpanel"><div id="setupBody"></div></section>
+</div>
+<div id="testModal" class="modal"><div class="box"><h2>Run a test on which item?</h2><p class="hint" style="margin-top:0">Nothing is written. The workflow reads the item's current values and shows what it would do.</p><div id="testItems">Loading items…</div></div></div>
+<div id="ghost"></div>
+<div id="toast" role="status"></div>
+<script src="/app.js"></script>
+</body>
+</html>
