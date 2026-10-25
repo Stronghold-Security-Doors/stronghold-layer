@@ -1,0 +1,28 @@
+# Render Blueprint — creates the web service and its small database in one click.
+# Region: Frankfurt (EU). Change nothing here unless Claude tells you to.
+services:
+  - type: web
+    name: stronghold-layer
+    runtime: node
+    region: frankfurt
+    plan: starter
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stronghold-layer-db
+          property: connectionString
+      - key: MONDAY_TOKEN
+        sync: false            # you paste this in when Render asks
+      - key: ADMIN_PASSWORD
+        sync: false            # the password you'll use to open the layer
+      - key: SESSION_SECRET
+        generateValue: true
+databases:
+  - name: stronghold-layer-db
+    region: frankfurt
+    plan: basic-256mb
