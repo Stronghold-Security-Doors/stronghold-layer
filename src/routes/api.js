@@ -4,6 +4,7 @@ import { q, getSetting, setSetting } from '../db.js';
 import * as monday from '../monday.js';
 import { run, matching, autoLayoutOf } from '../engine-helpers.js';
 import { defaults, autoLayout } from '../workflows.js';
+import * as mirror from '../mirror.js';
 
 const api = Router();
 const uid = () => 'w' + Math.random().toString(36).slice(2, 8);
@@ -71,10 +72,20 @@ api.get('/setup/webhooks', async (req, res) => { const map = await getSetting('b
 api.post('/setup/webhooks', async (req, res) => {
   const base = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL; if (!base) return res.status(400).json({ error: 'No public URL known yet' });
   const map = await getSetting('boards', {}); const url = base.replace(/\/$/, '') + '/webhooks/monday'; const made = [];
-  for (const [name, id] of Object.entries(map)) { const existing = await monday.webhooks(id); for (const ev of ['change_column_value', 'create_item', 'item_moved_to_any_group']) { if (existing.some(w => w.event === ev && (w.config || '').includes(url))) continue; try { made.push({ board: name, event: ev, id: await monday.createWebhook(id, url, ev) }); } catch (e) { made.push({ board: name, event: ev, error: e.message }); } } }
+  for (const [name, id] of Object.entries(map)) { const existing = await monday.webhooks(id); for (const ev of ['change_column_value', 'create_item', 'item_moved_to_any_group', 'item_deleted', 'item_archived', 'change_name']) { if (existing.some(w => w.event === ev && (w.config || '').includes(url))) continue; try { made.push({ board: name, event: ev, id: await monday.createWebhook(id, url, ev) }); } catch (e) { made.push({ board: name, event: ev, error: e.message }); } } }
   res.json({ url, made });
 });
 api.get('/setup/items', async (req, res) => { const map = await getSetting('boards', {}); const bid = map[req.query.board || 'Projects']; if (!bid) return res.json([]); try { res.json(await monday.boardItems(bid, 60)); } catch (e) { res.status(400).json({ error: e.message }); } });
+// --- mirror ---
+api.get('/mirror/status', async (req, res) => { res.json(await mirror.status()); });
+api.post('/mirror/sync', async (req, res) => { const { board } = req.body || {}; const map = await getSetting('boards', {}); if (board) { if (!map[board]) return res.status(400).json({ error: 'board not mapped' }); return res.json([await mirror.syncBoard(board, map[board])]); } res.json(await mirror.syncAll()); });
+api.get('/mirror/items', async (req, res) => { const board = req.query.board || 'Projects'; const search = (req.query.q || '').trim().toLowerCase(); const includeArchived = req.query.archived === '1';
+  const rows = await q(`SELECT item_id,name,group_title,cols,updated_at,created_at,archived FROM mirror_items WHERE board_name=$1 ${includeArchived ? '' : 'AND NOT archived'} ORDER BY updated_at DESC NULLS LAST LIMIT 2000`, [board]);
+  const out = search ? rows.filter(r => (r.name + ' ' + Object.values(r.cols).join(' ')).toLowerCase().includes(search)) : rows;
+  const b = (await q('SELECT columns, groups FROM mirror_boards WHERE name=$1', [board]))[0]; res.json({ board, columns: b ? b.columns : [], groups: b ? b.groups : [], items: out }); });
+api.get('/mirror/items/:id', async (req, res) => { const r = (await q('SELECT * FROM mirror_items WHERE item_id=$1', [req.params.id]))[0]; if (!r) return res.status(404).json({ error: 'not in the mirror' }); let updates = []; try { updates = await monday.updatesFor(r.item_id); } catch (e) {} const runs = await q('SELECT id,workflow_name,mode,status,started_at,trigger FROM runs WHERE item_id=$1 ORDER BY id DESC LIMIT 50', [r.item_id]); res.json({ item: r, updates, runs }); });
+api.get('/mirror/log', async (req, res) => { res.json(await q('SELECT * FROM mirror_log ORDER BY id DESC LIMIT 100')); });
+
 api.get('/events', async (req, res) => { res.json(await q('SELECT id,kind,body,received_at FROM events ORDER BY id DESC LIMIT 50')); });
 
 export default api;

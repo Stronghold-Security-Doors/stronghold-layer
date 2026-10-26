@@ -1,6 +1,6 @@
 {
   "name": "stronghold-layer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Stronghold CRM layer: workflow engine and canvas on top of monday.com",
   "private": true,
   "type": "module",

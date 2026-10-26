@@ -14,6 +14,7 @@
     <div class="nav" role="tablist">
       <button role="tab" data-screen="canvasPanel" aria-selected="true">Canvas</button>
       <button role="tab" data-screen="runsPanel" aria-selected="false">Runs</button>
+      <button role="tab" data-screen="dataPanel" aria-selected="false">Data</button>
       <button role="tab" data-screen="setupPanel" aria-selected="false">Setup</button>
     </div>
     <span class="spacer"></span>
@@ -75,6 +76,7 @@
   </section>
 
   <section id="runsPanel" class="panel page" role="tabpanel"><div id="runsBody"></div></section>
+  <section id="dataPanel" class="panel page" role="tabpanel"><div id="dataBody"></div></section>
   <section id="setupPanel" class="panel page" role="tabpanel"><div id="setupBody"></div></section>
 </div>
 <div id="testModal" class="modal"><div class="box"><h2>Run a test on which item?</h2><p class="hint" style="margin-top:0">Nothing is written. The workflow reads the item's current values and shows what it would do.</p><div id="testItems">Loading items…</div></div></div>

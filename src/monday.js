@@ -60,3 +60,12 @@ export async function createWebhook(boardId, url, event) {
   return d.create_webhook.id;
 }
 export async function deleteWebhook(id) { await gql('mutation($id:ID!) { delete_webhook(id:$id) { id } }', { id: String(id) }); }
+
+// Paged read of a whole board (used by the mirror). cursor=null for the first page.
+const ITEM_FIELDS = 'id name created_at updated_at group { id title } column_values { id text type value column { title } }';
+export async function itemsPage(boardId, cursor, limit = 100) {
+  if (!cursor) { const d = await gql(`query($ids:[ID!],$limit:Int) { boards(ids:$ids) { items_page(limit:$limit) { cursor items { ${ITEM_FIELDS} } } } }`, { ids: [String(boardId)], limit }); return d.boards && d.boards[0] ? d.boards[0].items_page : { items: [], cursor: null }; }
+  const d = await gql(`query($cursor:String!,$limit:Int) { next_items_page(cursor:$cursor, limit:$limit) { cursor items { ${ITEM_FIELDS} } } }`, { cursor, limit }); return d.next_items_page;
+}
+export async function itemFull(itemId) { const d = await gql(`query($ids:[ID!]) { items(ids:$ids) { ${ITEM_FIELDS} board { id } } }`, { ids: [String(itemId)] }); return d.items && d.items[0]; }
+export async function updatesFor(itemId) { const d = await gql('query($ids:[ID!]) { items(ids:$ids) { updates(limit:50) { id text_body created_at creator { name } } } }', { ids: [String(itemId)] }); return (d.items && d.items[0] && d.items[0].updates) || []; }

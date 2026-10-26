@@ -1,6 +1,6 @@
 # Stronghold layer
 
-The workflow engine and canvas that sits on top of monday.com. Phase 1: WF3 in watch mode.
+The workflow engine and canvas that sits on top of monday.com, plus the mirror — the layer's own copy of the boards, kept in sync by webhooks and a full re-sync every 6 hours. monday stays the master.
 
 ## Runbook (plain English)
 
@@ -18,6 +18,7 @@ The workflow engine and canvas that sits on top of monday.com. Phase 1: WF3 in w
 - Setup: choose the Projects board, check the column mapping, register the monday webhooks.
 - Canvas: edit workflows; Watch = log only, Live = acts on monday.
 - Runs: every run of every workflow, step by step.
+- Data: the mirror, board by board. Read-only for now. Should match monday within seconds; Setup → Mirror shows when each board last synced.
 
 **Local run (for a developer)**
 ```

@@ -191,3 +191,25 @@ table.t tr.row{cursor:pointer} table.t tr.row:hover td{background:var(--surface-
 .modal .item:hover{border-color:var(--focus)}
 .modal .item small{display:block; color:var(--muted); font-weight:500}
 select.sel{padding:7px 10px; border:1px solid var(--line-strong); border-radius:8px; background:var(--surface)}
+
+/* ===== data screen ===== */
+.dtool{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px}
+.dtool input{padding:7px 10px; border:1px solid var(--line-strong); border-radius:8px; background:var(--surface); min-width:240px}
+.dwrap{background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:calc(100vh - 230px)}
+table.d{border-collapse:separate; border-spacing:0; font-size:12.5px; min-width:max-content}
+table.d th{position:sticky; top:0; background:var(--surface); z-index:2; text-align:left; font-size:11px; color:var(--muted); font-weight:800; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap}
+table.d td{padding:6px 10px; border-bottom:1px solid var(--line); white-space:nowrap; max-width:260px; overflow:hidden; text-overflow:ellipsis}
+table.d td.name{position:sticky; left:0; background:var(--surface); font-weight:700; z-index:1}
+table.d tr.row{cursor:pointer} table.d tr.row:hover td{background:var(--surface-2)}
+table.d tr.grp td{background:var(--surface-2); font-weight:800; font-size:12px; position:sticky; left:0}
+.detail{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-top:12px}
+.detail h2{font-size:15px; margin:0 0 8px}
+.detail .cols{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:6px 14px; font-size:13px}
+.detail .cols div{padding:5px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:8px}
+.detail .cols span{color:var(--muted)} .detail .cols b{text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.detail ul{margin:6px 0 0; padding:0; list-style:none}
+.detail li{padding:6px 0; border-top:1px solid var(--line); font-size:13px}
+.detail li small{color:var(--muted); margin-right:6px}
+.mir{width:100%; border-collapse:collapse; font-size:13px}
+.mir th{text-align:left; font-size:11.5px; color:var(--muted); padding:6px 8px; border-bottom:1px solid var(--line)}
+.mir td{padding:7px 8px; border-bottom:1px solid var(--line)}

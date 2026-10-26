@@ -8,6 +8,7 @@ import { migrate, q, getSetting } from './db.js';
 import { defaults } from './workflows.js';
 import { run, matching, resumeDue } from './engine.js';
 import * as monday from './monday.js';
+import * as mirror from './mirror.js';
 import api from './routes/api.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -40,6 +41,8 @@ app.post('/webhooks/monday', async (req, res) => {
     const ev = body.event || {}; await q('INSERT INTO events(kind,body) VALUES($1,$2)', [ev.type || 'unknown', JSON.stringify(body)]);
     const boardsMap = await getSetting('boards', {}); const boardName = Object.keys(boardsMap).find(n => String(boardsMap[n]) === String(ev.boardId)) || '';
     const evt = { type: ev.type, boardName, boardId: ev.boardId, itemId: ev.pulseId, columnTitle: ev.columnTitle, columnId: ev.columnId, value: labelOf(ev.value), previousValue: labelOf(ev.previousValue) };
+    // keep the mirror current first, whatever the event
+    if (boardName && evt.itemId) { if (evt.type === 'item_deleted' || evt.type === 'item_archived') { await mirror.markGone(evt.itemId); return; } try { await mirror.refreshItem(boardName, evt.boardId, evt.itemId); } catch (e) { console.error('mirror refresh', e.message); } }
     const ws = (await q(`SELECT * FROM workflows WHERE mode IN ('watch','live')`)).filter(w => { const t = w.def.nodes.find(n => n.type === 'trigger'); return !t || !t.p.board || String(t.p.board).toLowerCase() === boardName.toLowerCase(); });
     const fire = matching(ws, evt); if (!fire.length) return;
     const item = await monday.readItem(evt.itemId); if (!item) return;
@@ -62,9 +65,11 @@ app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'in
 // --- start ---
 const port = process.env.PORT || 10000;
 (async () => {
-  await migrate();
+  await migrate(); await mirror.migrateMirror();
   const n = (await q('SELECT count(*)::int AS n FROM workflows'))[0].n;
   if (!n) { for (const [i, w] of defaults().entries()) await q('INSERT INTO workflows(id,name,def,mode,version,sort) VALUES($1,$2,$3,$4,1,$5)', [w.id, w.name, JSON.stringify({ desc: w.desc, sample: w.sample, nodes: w.nodes, edges: w.edges, color: w.color }), 'watch', i]); console.log('Loaded the default workflows (all in watch mode)'); }
   setInterval(() => resumeDue().catch(e => console.error('scheduler', e.message)), 30000);
+  setInterval(() => mirror.syncAll().catch(e => console.error('mirror sync', e.message)), 6 * 3600 * 1000); // safety net: full re-sync every 6 hours
+  mirror.syncAll().catch(e => console.error('mirror first sync', e.message)); // and once at start, so a fresh deploy fills itself
   app.listen(port, () => console.log('Stronghold layer listening on ' + port));
 })();
